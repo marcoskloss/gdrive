@@ -2,25 +2,34 @@ import {
   describe,
   test,
   expect,
-  jest
+  jest,
+  beforeEach
 } from '@jest/globals'
 
+import { logger } from '../../src/logger.js'
 import Routes from '../../src/routes.js'
+import UploadHandler from '../../src/uploadHandler.js'
+import TestUtil from '../_util/testUtil.js'
 
 describe('Routes test suite', () => {
+  beforeEach(() => jest.spyOn(logger, 'info').mockImplementation())
+  
+  const response = TestUtil.generateWritableStream(() => {})
+  const request = TestUtil.generateReadableStream(['some file bytes o/'])
+  
   const defaultParams = {
-    request: {
+    request: Object.assign(request, {
       headers: {
         'Content-Type': 'multipart/form-data'
       },
       method: '',
       body: {}
-    },
-    response: {
+    }),
+    response: Object.assign(response, {
       setHeader: jest.fn(),
       writeHead: jest.fn(),
       end: jest.fn()
-    },
+    }),
     values: () => Object.values(defaultParams)
   }
 
@@ -108,6 +117,33 @@ describe('Routes test suite', () => {
       expect(params.response.writeHead).toHaveBeenCalledWith(200)
       expect(params.response.end)
         .toHaveBeenCalledWith(JSON.stringify(filesStatusesMock))
+    })
+  })
+
+  describe('post', () => {
+    test('it should test post route workflow', async () => {
+      const routes = new Routes('/tmp')      
+      const options = { ...defaultParams }
+
+      options.request.method = 'POST'
+      options.request.url = '?socketId=10'
+
+      jest.spyOn(
+        UploadHandler.prototype, 
+        UploadHandler.prototype.registerEvents.name
+      ).mockImplementation((headers, onFinish) => {
+        const writable = TestUtil.generateWritableStream(() => {})
+        writable.on('finish', onFinish)
+        return writable
+      })
+
+      await routes.handler(...options.values())
+
+      expect(UploadHandler.prototype.registerEvents).toHaveBeenCalled()
+      expect(options.response.writeHead).toHaveBeenCalledWith(200)
+      expect(options.response.end).toHaveBeenCalledWith(
+        JSON.stringify({ result: 'Files uploaded with success!' })
+      )
     })
   })
 })
