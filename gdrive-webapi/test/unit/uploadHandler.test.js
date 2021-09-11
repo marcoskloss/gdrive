@@ -110,6 +110,60 @@ describe('UploadHandler', () => {
       expect(onWrite).toHaveBeenCalledTimes(messages.length)
       expect(onWrite.mock.calls.join()).toEqual(messages.join())
     })
+
+    test('given messageTimeDelay as 2secs it should emit only two messages during 3 seconds period', async () => {
+      jest.spyOn(ioObj, ioObj.emit.name)  
+      const day = '2021-09-11 01:01'
+
+      const twoSecondsDelay = 2000
+
+      const onFirstLasMessageSent = TestUtil.getTimeFromDate(`${day}:01`)
+
+      const onFirstCanExecute = TestUtil.getTimeFromDate(`${day}:03`)
+      const onSecondUpdateLastMessageSent = onFirstCanExecute
+      
+      const onSecondCanExecute = TestUtil.getTimeFromDate(`${day}:04`)
+
+      const onThirdCanExecute = TestUtil.getTimeFromDate(`${day}:05`)
+
+      TestUtil.mockDateNow([
+        onFirstLasMessageSent,
+        onFirstCanExecute,
+        onSecondUpdateLastMessageSent,
+        onSecondCanExecute,
+        onThirdCanExecute,
+      ])
+
+      const sourceData = ['hello', 'hello', 'world']
+      const filename = 'file.txt'
+      const source = TestUtil.generateReadableStream(sourceData)
+      
+      const uploadHandler = new UploadHandler({
+        io: ioObj,
+        socketId: '01',
+        messageTimeDelay: twoSecondsDelay
+      })
+      
+      await pipeline(
+        source,
+        uploadHandler.handleFileBytes(filename)
+      )
+
+      const expectedMessagesSent = 2
+      expect(ioObj.emit).toHaveBeenCalledTimes(expectedMessagesSent)
+      
+      const [firstCallResult, secondCallResult] = ioObj.emit.mock.calls
+
+      expect(firstCallResult).toEqual([
+        uploadHandler.ON_UPLOAD_EVENT,
+        { processedAlready: 'hello'.length, filename }
+      ])
+
+      expect(secondCallResult).toEqual([
+        uploadHandler.ON_UPLOAD_EVENT,
+        { processedAlready: sourceData.join('').length, filename }
+      ])
+    })
   })
 
   describe('canExecute', () => {

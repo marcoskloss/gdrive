@@ -13,7 +13,7 @@ export default class UploadHandler {
   }
 
   canExecute(lastExecution) {
-    return (Date.now() - lastExecution) > this.messageTimeDelay
+    return (Date.now() - lastExecution) >= this.messageTimeDelay
   }
 
   handleFileBytes(filename) {
@@ -27,6 +27,8 @@ export default class UploadHandler {
         processedAlready += chunk.length
 
         if (!this.canExecute(this.lastMessageSent)) { continue }
+
+        this.lastMessageSent = Date.now()
 
         this.io.to(this.socketId).emit(
           this.ON_UPLOAD_EVENT,
