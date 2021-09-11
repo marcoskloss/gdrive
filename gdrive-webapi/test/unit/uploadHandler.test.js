@@ -2,18 +2,22 @@ import {
   describe,
   test,
   expect,
-  jest
+  jest,
+  beforeEach
 } from '@jest/globals'
 import fs from 'fs'
 import { pipeline } from 'stream/promises'
 import UploadHandler from '../../src/uploadHandler.js'
 import TestUtil from '../_util/testUtil.js'
+import { logger } from '../../src/logger'
 
 describe('UploadHandler', () => {
   const ioObj = {
     to: (id) => ioObj,
     emit: (event, message) => {}
   }
+
+  beforeEach(() => jest.spyOn(logger, 'info').mockImplementation())
   
   describe('registerEvents', () => {
     test('should call onFile functions on Busboy instance', () => {
