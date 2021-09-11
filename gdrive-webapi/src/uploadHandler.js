@@ -11,13 +11,21 @@ export default class UploadHandler {
     this.ON_UPLOAD_EVENT = 'file-upload'
   }
 
+  canExecute(lastExecution) {
+
+  }
+
   handleFileBytes(filename) {
+    this.lastMessageSent = Date.now()
+    
     async function * handleData(source) {
       let processedAlready = 0
       
       for await (const chunk of source) {
         yield chunk
         processedAlready += chunk.length
+
+        if (!this.canExecute(this.lastMessageSent)) { continue }
 
         this.io.to(this.socketId).emit(
           this.ON_UPLOAD_EVENT,

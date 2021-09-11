@@ -90,6 +90,9 @@ describe('UploadHandler', () => {
         socketId: '01'        
       })
 
+      jest.spyOn(uploadHandler, uploadHandler.canExecute.name)
+        .mockReturnValue(true)
+
       const messages = ['hello']
       const source = TestUtil.generateReadableStream(messages)
       const onWrite = jest.fn()
