@@ -11,14 +11,14 @@ import TestUtil from '../_util/testUtil.js'
 
 describe('UploadHandler', () => {
   const ioObj = {
-    io: (id) => ioObj,
+    to: (id) => ioObj,
     emit: (event, message) => {}
   }
   
   describe('registerEvents', () => {
     test('should call onFile functions on Busboy instance', () => {
       const uploadHandler = new UploadHandler({
-        io: ioObj,
+        to: ioObj,
         socketId: '01'
       })
 
@@ -74,5 +74,34 @@ describe('UploadHandler', () => {
       const expectedFilename = `${uploadHandler.downloadsFolder}/${params.filename}`
       expect(fs.createWriteStream).toHaveBeenCalledWith(expectedFilename)
     })  
+  })
+
+  describe('handleFileBytes', () => {
+    test('should call emit function and it is a transform stream', async () => {
+      jest.spyOn(ioObj, ioObj.to.name)
+      jest.spyOn(ioObj, ioObj.emit.name)
+
+      const uploadHandler = new UploadHandler({
+        io: ioObj,
+        socketId: '01'        
+      })
+
+      const messages = ['hello']
+      const source = TestUtil.generateReadableStream(messages)
+      const onWrite = jest.fn()
+      const target = TestUtil.generateWritableStream(onWrite)
+
+      await pipeline(
+        source,
+        uploadHandler.handleFileBytes('file.txt'),
+        target
+      )
+
+      expect(ioObj.to).toHaveBeenCalledTimes(messages.length)
+      expect(ioObj.emit).toHaveBeenCalledTimes(messages.length)
+
+      expect(onWrite).toHaveBeenCalledTimes(messages.length)
+      expect(onWrite.mock.calls.join()).toEqual(messages.join())
+    })
   })
 })
