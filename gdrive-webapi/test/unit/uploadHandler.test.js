@@ -111,4 +111,28 @@ describe('UploadHandler', () => {
       expect(onWrite.mock.calls.join()).toEqual(messages.join())
     })
   })
+
+  describe('canExecute', () => {
+    const uploadHandler = new UploadHandler({
+      io: {},
+      socketId: ''
+    })
+
+    test('should return true when last execution is later than specified delay', () => {
+      const timerDelay = 1000
+      const uploadHandler = new UploadHandler({
+        io: {},
+        socketId: '',
+        messageTimeDelay: timerDelay
+      })
+      
+      const tickNow = TestUtil.getTimeFromDate('2021-07-01 00:00:03')
+      TestUtil.mockDateNow([tickNow])
+
+      const lastExecution = TestUtil.getTimeFromDate('2021-07-01 00:00:00')    
+
+      const result = uploadHandler.canExecute(lastExecution)
+      expect(result).toBeTruthy()
+    })
+  })
 })

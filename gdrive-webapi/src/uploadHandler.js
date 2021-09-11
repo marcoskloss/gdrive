@@ -4,15 +4,16 @@ import fs from 'fs'
 import { logger } from './logger'
 
 export default class UploadHandler {
-  constructor({ io, socketId, downloadsFolder }) {
+  constructor({ io, socketId, downloadsFolder, messageTimeDelay = 200 }) {
     this.io = io
     this.socketId = socketId
     this.downloadsFolder = downloadsFolder
+    this.messageTimeDelay = messageTimeDelay
     this.ON_UPLOAD_EVENT = 'file-upload'
   }
 
   canExecute(lastExecution) {
-
+    return (Date.now() - lastExecution) > this.messageTimeDelay
   }
 
   handleFileBytes(filename) {
