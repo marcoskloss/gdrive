@@ -11,8 +11,35 @@ export class ViewManager {
       hour: '2-digit',
       minute: '2-digit'
     })
+    this.progressModal = document.getElementById('progressModal')
+    this.progressBar = document.getElementById('progressBar')
+    this.output = document.getElementById('output')
+    this.modalInstance = {}
   }
 
+  configureModal() {
+    this.modalInstance = M.Modal.init(this.progressModal, {
+      opacity: 0,
+      dismissable: false,
+      onOpenEnd() {
+        this.$overlay[0].remove()
+      }
+    })
+  }
+
+  openModal() {
+    this.modalInstance.open()
+  }
+  
+  closeModal() {
+    this.modalInstance.close()
+  }
+
+  updateModalStatus(size) {
+    this.output.innerHTML = `Uploading in <strong>${Math.floor(size)}%</strong>`
+    this.progressBar.value = size
+  }
+  
   configureOnFileChange(fn) {
     this.fileInputElement.onchange = (e) => fn(e.target.files)
   }
