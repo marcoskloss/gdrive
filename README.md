@@ -20,8 +20,8 @@ Marque esse projeto com uma estrela 🌟
 
 - Web App 
     - [X] Deve listar arquivos baixados
-    - [ ] Deve permitir fazer upload de arquivos de qualquer tamanho
-    - [ ] Deve ter função de upload via botão
+    - [X] Deve permitir fazer upload de arquivos de qualquer tamanho
+    - [X] Deve ter função de upload via botão
     - [ ] Deve exibir progresso de upload 
     - [ ] Deve ter função de upload via drag and drop
 
